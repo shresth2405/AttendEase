@@ -14,7 +14,7 @@ export default function SignupPage() {
     <View style={styles.container}>
       {/* 🔝 Logo at top */}
       <Image
-        source={require('../assets/AttendEase Start Logo.png')}
+        source={require('../assets/Logo for other Pages.png')}
         style={styles.logo}
       />
 
@@ -53,10 +53,10 @@ const styles = StyleSheet.create({
 
   // Logo image
   logo: {
-    width: 280,
-    height: 280,
+    width: 380,
+    height: 380,
     resizeMode: 'contain',
-    marginTop: -200,
+    marginTop: -280,
   },
 
   // 🟦 Signup Card with stroke
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
 
-    borderWidth: 2,             // ✅ border stroke
+    borderWidth: 6,             // ✅ border stroke
     borderColor: '#00BFFF',     // ✅ border color
     marginTop: -500,             // ✅ lift upward
   },
