@@ -11,24 +11,25 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getSubjectsWithSchedules, addScheduleEntry, getScheduleEntries} from '../database/operation';
 
 interface SubjectType {
-  id: string;
+  name: string;
+  code: string;
+  teacher: string;
+}
+interface ScheduleEntry {
+  day: string;
+  start_time: string;
+  end_time: string;
+  subject_code: string;
   name: string;
   teacher: string;
 }
 
-export default function ScheduleBuilderPage() {
-  const [subjects, setSubjects] = useState<SubjectType[]>([
-    { id: '1', name: 'Math', teacher: 'Mr. A' },
-    { id: '2', name: 'Physics', teacher: 'Ms. B' },
-    { id: '3', name: 'Chemistry', teacher: 'Mr. C' },
-    { id: '4', name: 'Biology', teacher: 'Ms. D' },
-    { id: '5', name: 'English', teacher: 'Mrs. E' },
-    { id: '6', name: 'Computer', teacher: 'Mr. F' },
-    { id: '7', name: 'History', teacher: 'Mr. G' },
-    { id: '8', name: 'LUNCH', teacher: 'Break' },
-  ]);
+
+export default async function ScheduleBuilderPage() {
+  const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
   const [routineGrid, setRoutineGrid] = useState<(SubjectType | null)[][]>(
     Array(5).fill(null).map(() => Array(9).fill(null))
@@ -44,15 +45,52 @@ export default function ScheduleBuilderPage() {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permissions required', 'Notification permissions are not granted');
+        Alert.alert('Permission Denied', 'Notification permissions are not granted');
+      }
+
+      try {
+        // Load Subjects
+        const data = await getSubjectsWithSchedules();
+        const loadedSubjects = data.map((s) => ({
+          name: s.name,
+          code: s.code,
+          teacher: s.teacher,
+        }));
+        setSubjects(loadedSubjects);
+
+        // Load Scheduled Entries
+        const scheduleData= await getScheduleEntries() as ScheduleEntry[];
+        const newGrid = Array(5).fill(null).map(() => Array(9).fill(null));
+
+        for (const entry of scheduleData) {
+          const dayIndex = days.findIndex((d) => d === entry.day);
+          const timeIndex = timeSlots.findIndex(
+            (slot) => slot.startsWith(entry.start_time.split(':')[0])
+          );
+          if (dayIndex !== -1 && timeIndex !== -1) {
+            newGrid[dayIndex][timeIndex] = {
+              name: entry.name,
+              code: entry.subject_code,
+              teacher: entry.teacher,
+            };
+          }
+        }
+
+        setRoutineGrid(newGrid);
+      } catch (err) {
+        Alert.alert('Error', 'Failed to load subjects or schedule.');
+        console.error(err);
       }
     };
+
     setup();
 
     return () => {
       ScreenOrientation.unlockAsync();
     };
   }, []);
+
+
 
   const handleDrop = (dayIndex: number, timeIndex: number) => {
     if (dragged) {
@@ -70,14 +108,27 @@ export default function ScheduleBuilderPage() {
   };
 
   const handleSaveRoutine = async () => {
-    Alert.alert('Routine Saved', 'Your schedule has been saved successfully!');
-
-    for (let rowIndex = 0; rowIndex < routineGrid.length; rowIndex++) {
-      for (let colIndex = 0; colIndex < routineGrid[rowIndex].length; colIndex++) {
-        const cell = routineGrid[rowIndex][colIndex];
-        if (cell && cell.name !== 'LUNCH') {
+    try {
+      for (let rowIndex = 0; rowIndex < routineGrid.length; rowIndex++) {
+        for (let colIndex = 0; colIndex < routineGrid[rowIndex].length; colIndex++) {
+          const cell = routineGrid[rowIndex][colIndex];
+          if (cell && cell.name !== 'LUNCH') {
+            const day = days[rowIndex];
+            const [start_time, end_time] = timeSlots[colIndex].split('-');
+            await addScheduleEntry({
+              day,
+              start_time: `${start_time}:00`,
+              end_time: `${end_time}:00`,
+              subject_code: cell.code,
+            });
+          }
         }
       }
+
+      Alert.alert('Success', 'Schedule saved successfully!');
+    } catch (error) {
+      console.error('Failed to save schedule:', error);
+      Alert.alert('Error', 'Failed to save schedule.');
     }
   };
 
@@ -131,7 +182,7 @@ export default function ScheduleBuilderPage() {
         <ScrollView contentContainerStyle={styles.subjectContainer}>
           {subjects.map((subject) => (
             <TouchableOpacity
-              key={subject.id}
+              key={subject.code}
               style={styles.subjectCard}
               onLongPress={() => setDragged(subject)}
             >

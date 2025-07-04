@@ -4,14 +4,16 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  Alert,
   TouchableOpacity,
   ScrollView,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // ❗Make sure this is installed
 import { useNavigation } from '@react-navigation/native'; // ✅ Add navigation
-import { RootStackParamList } from '../types/navigation'; 
+import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { addSubject } from '../database/operation';
 
 export default function AddSubjectsPage() {
   const [subjects, setSubjects] = useState([
@@ -19,6 +21,7 @@ export default function AddSubjectsPage() {
     { name: '', code: '', teacher: '' },
     { name: '', code: '', teacher: '' },
   ]);
+
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -32,10 +35,42 @@ export default function AddSubjectsPage() {
     setSubjects(updated);
   };
 
-  const handleSaveDetails = () => {
+
+
+  const handleSaveDetails = async () => {
     // 🔁 Save logic here (store to state or context)
-    navigation.navigate('ScheduleBuilder');
- // ✅ Redirect after save
+    try {
+      for (const subject of subjects) {
+        if (subject.name.trim() && subject.code.trim()) {
+          try {
+            await addSubject({
+              name: subject.name.trim(),
+              code: subject.code.trim(),
+              teacher: subject.teacher.trim(),
+            });
+          } catch (error: any) {
+            if (error.message.includes('UNIQUE constraint failed')) {
+              Alert.alert(
+                'Duplicate Code',
+                `Subject code "${subject.code}" already exists. Please change it.`
+              );
+              return;
+            } else {
+              console.error('Database error:', error);
+              Alert.alert('Error', 'Failed to save subjects.');
+              return;
+            }
+          }
+        }
+      }
+      Alert.alert('Success', 'Subjects saved successfully!');
+      setSubjects([{ name: '', code: '', teacher: '' }]); // Clear form
+      navigation.navigate('ScheduleBuilder');
+      // ✅ Redirect after save
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      Alert.alert('Error', 'Unexpected error occurred.');
+    }
   };
 
   return (

@@ -28,7 +28,7 @@ export default function SignupPage() {
         <TextInput style={styles.input} placeholder="College Name" value={college} onChangeText={setCollege} />
         <TextInput style={styles.input} placeholder="Roll Number" value={roll} onChangeText={setRoll} />
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Verify')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ScheduleBuilder')}>
           <Text style={styles.buttonText}>Signup</Text>
         </TouchableOpacity>
       </View>
