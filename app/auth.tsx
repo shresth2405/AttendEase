@@ -36,7 +36,7 @@ export default function AuthPage() {
       <View style={styles.buttonGroup}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.navigate('AccountReady')}
         >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
