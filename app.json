@@ -3,6 +3,9 @@
     "name": "AttendEase",
     "slug": "AttendEase",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "nativeVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,12 +23,18 @@
       }
     },
     "android": {
+      "package": "com.shirshak0071.AttendEase",
+      "versionCode": 1,
+      "minSdkVersion": 23,
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.shirshak0071.AttendEase"
+      "googleServicesFile": "./google-services.json" 
     },
     "web": {
       "favicon": "./assets/favicon.png"
