@@ -11,24 +11,16 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getSubjectsWithSchedules, addScheduleEntry } from '../database/operation';
 
 interface SubjectType {
-  id: string;
   name: string;
+  code: string;
   teacher: string;
 }
 
-export default function ScheduleBuilderPage() {
-  const [subjects, setSubjects] = useState<SubjectType[]>([
-    { id: '1', name: 'Math', teacher: 'Mr. A' },
-    { id: '2', name: 'Physics', teacher: 'Ms. B' },
-    { id: '3', name: 'Chemistry', teacher: 'Mr. C' },
-    { id: '4', name: 'Biology', teacher: 'Ms. D' },
-    { id: '5', name: 'English', teacher: 'Mrs. E' },
-    { id: '6', name: 'Computer', teacher: 'Mr. F' },
-    { id: '7', name: 'History', teacher: 'Mr. G' },
-    { id: '8', name: 'LUNCH', teacher: 'Break' },
-  ]);
+export default async function ScheduleBuilderPage() {
+  const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
   const [routineGrid, setRoutineGrid] = useState<(SubjectType | null)[][]>(
     Array(5).fill(null).map(() => Array(9).fill(null))
@@ -40,19 +32,33 @@ export default function ScheduleBuilderPage() {
   const timeSlots = ['9-10', '10-11', '11-12', '12-1', '1-2', '2-3', '3-4', '4-5', '5-6'];
 
   useEffect(() => {
-    const setup = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissions required', 'Notification permissions are not granted');
-      }
-    };
-    setup();
+  const setup = async () => {
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Notification permissions are not granted');
+    }
 
-    return () => {
-      ScreenOrientation.unlockAsync();
-    };
-  }, []);
+    try {
+      const data = await getSubjectsWithSchedules();
+      setSubjects(data.map((s) => ({
+        name: s.name,
+        code: s.code,
+        teacher: s.teacher,
+      })));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to load subjects from database.');
+      console.error(err);
+    }
+  };
+
+  setup();
+
+  return () => {
+    ScreenOrientation.unlockAsync();
+  };
+}, []);
+
 
   const handleDrop = (dayIndex: number, timeIndex: number) => {
     if (dragged) {
@@ -70,14 +76,27 @@ export default function ScheduleBuilderPage() {
   };
 
   const handleSaveRoutine = async () => {
-    Alert.alert('Routine Saved', 'Your schedule has been saved successfully!');
-
-    for (let rowIndex = 0; rowIndex < routineGrid.length; rowIndex++) {
-      for (let colIndex = 0; colIndex < routineGrid[rowIndex].length; colIndex++) {
-        const cell = routineGrid[rowIndex][colIndex];
-        if (cell && cell.name !== 'LUNCH') {
+    try {
+      for (let rowIndex = 0; rowIndex < routineGrid.length; rowIndex++) {
+        for (let colIndex = 0; colIndex < routineGrid[rowIndex].length; colIndex++) {
+          const cell = routineGrid[rowIndex][colIndex];
+          if (cell && cell.name !== 'LUNCH') {
+            const day = days[rowIndex];
+            const [start_time, end_time] = timeSlots[colIndex].split('-');
+            await addScheduleEntry({
+              day,
+              start_time: `${start_time}:00`,
+              end_time: `${end_time}:00`,
+              subject_code: cell.code,
+            });
+          }
         }
       }
+
+      Alert.alert('Success', 'Schedule saved successfully!');
+    } catch (error) {
+      console.error('Failed to save schedule:', error);
+      Alert.alert('Error', 'Failed to save schedule.');
     }
   };
 
@@ -131,7 +150,7 @@ export default function ScheduleBuilderPage() {
         <ScrollView contentContainerStyle={styles.subjectContainer}>
           {subjects.map((subject) => (
             <TouchableOpacity
-              key={subject.id}
+              key={subject.code}
               style={styles.subjectCard}
               onLongPress={() => setDragged(subject)}
             >
