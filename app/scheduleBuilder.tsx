@@ -11,13 +11,22 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getSubjectsWithSchedules, addScheduleEntry } from '../database/operation';
+import { getSubjectsWithSchedules, addScheduleEntry, getScheduleEntries} from '../database/operation';
 
 interface SubjectType {
   name: string;
   code: string;
   teacher: string;
 }
+interface ScheduleEntry {
+  day: string;
+  start_time: string;
+  end_time: string;
+  subject_code: string;
+  name: string;
+  teacher: string;
+}
+
 
 export default async function ScheduleBuilderPage() {
   const [subjects, setSubjects] = useState<SubjectType[]>([]);
@@ -32,32 +41,55 @@ export default async function ScheduleBuilderPage() {
   const timeSlots = ['9-10', '10-11', '11-12', '12-1', '1-2', '2-3', '3-4', '4-5', '5-6'];
 
   useEffect(() => {
-  const setup = async () => {
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Notification permissions are not granted');
-    }
+    const setup = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Notification permissions are not granted');
+      }
 
-    try {
-      const data = await getSubjectsWithSchedules();
-      setSubjects(data.map((s) => ({
-        name: s.name,
-        code: s.code,
-        teacher: s.teacher,
-      })));
-    } catch (err) {
-      Alert.alert('Error', 'Failed to load subjects from database.');
-      console.error(err);
-    }
-  };
+      try {
+        // Load Subjects
+        const data = await getSubjectsWithSchedules();
+        const loadedSubjects = data.map((s) => ({
+          name: s.name,
+          code: s.code,
+          teacher: s.teacher,
+        }));
+        setSubjects(loadedSubjects);
 
-  setup();
+        // Load Scheduled Entries
+        const scheduleData= await getScheduleEntries() as ScheduleEntry[];
+        const newGrid = Array(5).fill(null).map(() => Array(9).fill(null));
 
-  return () => {
-    ScreenOrientation.unlockAsync();
-  };
-}, []);
+        for (const entry of scheduleData) {
+          const dayIndex = days.findIndex((d) => d === entry.day);
+          const timeIndex = timeSlots.findIndex(
+            (slot) => slot.startsWith(entry.start_time.split(':')[0])
+          );
+          if (dayIndex !== -1 && timeIndex !== -1) {
+            newGrid[dayIndex][timeIndex] = {
+              name: entry.name,
+              code: entry.subject_code,
+              teacher: entry.teacher,
+            };
+          }
+        }
+
+        setRoutineGrid(newGrid);
+      } catch (err) {
+        Alert.alert('Error', 'Failed to load subjects or schedule.');
+        console.error(err);
+      }
+    };
+
+    setup();
+
+    return () => {
+      ScreenOrientation.unlockAsync();
+    };
+  }, []);
+
 
 
   const handleDrop = (dayIndex: number, timeIndex: number) => {

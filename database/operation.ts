@@ -120,3 +120,12 @@ export const addHistoryEntry = async (entry: HistoryEntry) => {
   }
 };
 
+export const getScheduleEntries = async () => {
+  const db = getDB();
+  return await db.getAllAsync(`
+    SELECT s.day, s.start_time, s.end_time, s.subject_code, subjects.name, subjects.teacher
+    FROM schedule s
+    JOIN subjects ON s.subject_code = subjects.code
+  `);
+};
+
