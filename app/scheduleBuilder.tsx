@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getSubjectsWithSchedules, addScheduleEntry, getScheduleEntries} from '../database/operation';
+import { getSubjectsWithSchedules, addScheduleEntry, getScheduleEntries } from '../database/operation';
 
 interface SubjectType {
   name: string;
@@ -28,7 +28,7 @@ interface ScheduleEntry {
 }
 
 
-export default async function ScheduleBuilderPage() {
+export default function ScheduleBuilderPage() {
   const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
   const [routineGrid, setRoutineGrid] = useState<(SubjectType | null)[][]>(
@@ -59,7 +59,7 @@ export default async function ScheduleBuilderPage() {
         setSubjects(loadedSubjects);
 
         // Load Scheduled Entries
-        const scheduleData= await getScheduleEntries() as ScheduleEntry[];
+        const scheduleData = await getScheduleEntries() as ScheduleEntry[];
         const newGrid = Array(5).fill(null).map(() => Array(9).fill(null));
 
         for (const entry of scheduleData) {
@@ -199,9 +199,32 @@ export default async function ScheduleBuilderPage() {
 
       <View style={styles.dragInfoBar}>
         <Text style={styles.dragInfoText}>
-          Hold. Drag and drop to add the subject in your routine table
+          Hold the subject...and then tap on Column to place it
         </Text>
       </View>
+
+      {dragged && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 80,
+            left: 20,
+            backgroundColor: '#3E00FF',
+            padding: 12,
+            borderRadius: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Selected:</Text>
+          <Text style={{ color: 'white' }}>{dragged.name}</Text>
+        </View>
+      )}
+
+
     </View>
   );
 }
