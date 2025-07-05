@@ -14,26 +14,37 @@ import ClassDetailsPage from './app/classDetails';
 import AddSubjectsPage from './app/subjects';
 import ScheduleBuilderPage from './app/scheduleBuilder';
 
+// Database Initialization
+import { initDB } from './database/initDB';  // ✅ Adjust this path to your DB file
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   useEffect(() => {
-    // Ask notification permission once app launches
-    const requestPermissions = async () => {
+  // Run async function safely inside useEffect
+  (async () => {
+    try {
+      await initDB();
+      console.log('Database initialized successfully.');
+
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') {
         alert('Enable notifications to get class alerts!');
       }
-    };
-    requestPermissions();
+    } catch (error) {
+      console.error('Initialization failed:', error);
+    }
+  })();
 
-    // Optional: Handle background notification response
-    const sub = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification tapped:', response.notification.request.content);
-    });
+  const sub = Notifications.addNotificationResponseReceivedListener(response => {
+    console.log('Notification tapped:', response.notification.request.content);
+  });
 
-    return () => sub.remove();
-  }, []);
+  return () => {
+    sub.remove();
+  };
+}, []);
+
 
   return (
     <NavigationContainer>
@@ -51,4 +62,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
