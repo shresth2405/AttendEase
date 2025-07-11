@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getSubjectsWithSchedules, addScheduleEntry, getScheduleEntries } from '../database/operation';
+import { useNavigation } from '@react-navigation/native';
 
 interface SubjectType {
   name: string;
@@ -29,6 +30,7 @@ interface ScheduleEntry {
 
 
 export default function ScheduleBuilderPage() {
+  const navigation = useNavigation<any>();
   const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
   const [routineGrid, setRoutineGrid] = useState<(SubjectType | null)[][]>(
@@ -38,7 +40,7 @@ export default function ScheduleBuilderPage() {
   const [dragged, setDragged] = useState<SubjectType | null>(null);
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-  const timeSlots = ['9-10', '10-11', '11-12', '12-1', '1-2', '2-3', '3-4', '4-5', '5-6'];
+  const timeSlots = ['9-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18'];
 
   useEffect(() => {
     const setup = async () => {
@@ -124,8 +126,9 @@ export default function ScheduleBuilderPage() {
           }
         }
       }
-
+      
       Alert.alert('Success', 'Schedule saved successfully!');
+      navigation.navigate('SyncDashboard');
     } catch (error) {
       console.error('Failed to save schedule:', error);
       Alert.alert('Error', 'Failed to save schedule.');

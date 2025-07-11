@@ -1,14 +1,53 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  // const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [college, setCollege] = useState('');
-  const [roll, setRoll] = useState('');
+  const [password, setPassword] = useState('');
+  // const [roll, setRoll] = useState('');
   const navigation = useNavigation<any>();
+
+  const handleData = async () => {
+    if (!fullName || !email || !password) {
+      Alert.alert('Missing Info', 'Please fill all fields.');
+      return;
+    }
+
+    const userData = {
+      "name": fullName,
+      "email": email,
+      "password": password,
+    };
+
+    console.log('User Data:', userData);
+
+    try {
+      const response = await fetch('https://attendease-backend-mtdj.onrender.com/api/user/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // console.log('Success:', result);
+        // Alert.alert('Signup Successful');
+        navigation.navigate('Login');
+      } else {
+        console.error('Failed:', response.status);
+        Alert.alert('Signup Failed', 'Something went wrong.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Network Error', 'Unable to reach server.');
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -23,12 +62,12 @@ export default function SignupPage() {
         <Text style={styles.cardHeading}>SIGNUP </Text>
 
         <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
-        <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} />
+        {/* <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} /> */}
         <TextInput style={styles.input} placeholder="Email Address" value={email} onChangeText={setEmail} />
-        <TextInput style={styles.input} placeholder="College Name" value={college} onChangeText={setCollege} />
-        <TextInput style={styles.input} placeholder="Roll Number" value={roll} onChangeText={setRoll} />
+        <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} />
+        {/* <TextInput style={styles.input} placeholder="Roll Number" value={roll} onChangeText={setRoll} /> */}
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ScheduleBuilder')}>
+        <TouchableOpacity style={styles.button} onPress={handleData}>
           <Text style={styles.buttonText}>Signup</Text>
         </TouchableOpacity>
       </View>

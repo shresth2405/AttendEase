@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons'; // ❗Make sure this is installed
 import { useNavigation } from '@react-navigation/native'; // ✅ Add navigation
 import { RootStackParamList } from '../types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { addSubject } from '../database/operation';
+import { addSubject, deleteAllSubjects, getAllSubjects } from '../database/operation';
 
 export default function AddSubjectsPage() {
   const [subjects, setSubjects] = useState([
@@ -24,6 +24,21 @@ export default function AddSubjectsPage() {
 
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const existingSubjects = await getAllSubjects();
+        if (existingSubjects.length > 0) {
+          setSubjects(existingSubjects);
+        }
+      } catch (error) {
+        console.error('Error fetching subjects:', error);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
 
   const handleAddSubject = () => {
     setSubjects([...subjects, { name: '', code: '', teacher: '' }]);
@@ -40,6 +55,7 @@ export default function AddSubjectsPage() {
   const handleSaveDetails = async () => {
     // 🔁 Save logic here (store to state or context)
     try {
+      await deleteAllSubjects();
       for (const subject of subjects) {
         if (subject.name.trim() && subject.code.trim()) {
           try {

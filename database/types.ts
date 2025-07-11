@@ -1,4 +1,5 @@
 export interface Subject{
+  id?:number;
   name: string;
   code: string;
   teacher: string;
@@ -13,10 +14,18 @@ export interface ScheduleEntry{
   subject_code: string; // Must match subject's code
 };
 
-export interface HistoryEntry {
+export interface History {
+  id: number
   subject_code: string;
   date: string; // e.g., '2025-07-03'
   status: 'Present' | 'Absent';
+  synced?: number,
+  createdAt?: string
+};
+
+export interface Class {
+  subject_code: string;
+  date: string; 
 };
 
 
@@ -27,6 +36,7 @@ export interface Schedule {
   start_time: string;
   end_time: string;
   subject_code: string;
+  synced?: number,
   createdAt: string;
 }
 

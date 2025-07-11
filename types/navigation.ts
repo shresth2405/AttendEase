@@ -1,4 +1,6 @@
 export type RootStackParamList = {
+  SyncDashboardPage: undefined,
+  LoginPage: undefined,
   SignUpPage: undefined,
   Verify: undefined,
   AddSubjects: undefined;

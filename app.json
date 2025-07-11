@@ -1,11 +1,9 @@
 {
   "expo": {
-    "name": "AttendEase",
-    "slug": "AttendEase",
+    "name": "attendance",
+    "slug": "attendease",
     "version": "1.0.0",
-    "runtimeVersion": {
-      "policy": "nativeVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -25,7 +23,6 @@
     "android": {
       "package": "com.shirshak0071.AttendEase",
       "versionCode": 1,
-      "minSdkVersion": 23,
       "edgeToEdgeEnabled": true,
       "permissions": [
         "NOTIFICATIONS"
@@ -33,8 +30,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "googleServicesFile": "./google-services.json" 
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,11 +39,11 @@
       "expo-notifications",
       "expo-sqlite"
     ],
+    "owner": "shresth_24",
     "extra": {
       "eas": {
-        "projectId": "f14ffdf4-5388-47d3-a840-319a887af7a5"
+        "projectId": "08225a68-4e35-4790-bae0-fb3c728df863"
       }
-    },
-    "owner": "shirshak0071"
+    }
   }
 }

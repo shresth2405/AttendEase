@@ -1,11 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function LoginPage() {
   const navigation = useNavigation<any>();
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleData = async()=>{
+    if(!email || !password){
+      Alert.alert("All field are required");
+      return;
+    }
+    const data = {
+      "email": email,
+      "password": password,
+    };
+    console.log("UserData", data);
+
+    try{
+      const response = await fetch("https://attendease-backend-mtdj.onrender.com/api/user/login",{
+        method: 'POST',
+        headers:{
+          'Content-Type': "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      if(response.ok){
+        const result = await response.json();
+        // console.log(result);
+        console.log("User logged in successfully");
+        navigation.navigate('AccountReady')
+      }else{
+        const error = await response.text();
+        console.error("Failed", response.status);
+        Alert.alert("Login Failed",error);
+      }
+    }catch(err){
+      console.error("Error:",err)
+      Alert.alert('Network Error', 'Unable to reach server.');
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -25,15 +60,15 @@ export default function LoginPage() {
 
         <TextInput
           style={styles.input}
-          placeholder="Enter Number or Email ID"
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
+          placeholder="Enter Email ID"
+          value={email}
+          onChangeText={setEmail}
         />
         <TextInput
           style={styles.input}
-          placeholder="Enter OTP"
-          value={otp}
-          onChangeText={setOtp}
+          placeholder="Enter password"
+          value={password}
+          onChangeText={setPassword}
         />
 
         {/* Resend & Forgot password row */}
@@ -42,7 +77,7 @@ export default function LoginPage() {
           <Text style={styles.link}>Forgot Password?</Text>
         </View>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleData}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
       </View>

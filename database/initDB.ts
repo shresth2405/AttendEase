@@ -17,6 +17,7 @@ export const initDB = async (): Promise<void> => {
         total_classes INTEGER DEFAULT 0,
         present INTEGER DEFAULT 0,
         percentage REAL DEFAULT 0.0,
+        synced INTEGER DEFAULT 0,
         createdAt TEXT DEFAULT (datetime('now','localtime'))
       );
 
@@ -26,6 +27,7 @@ export const initDB = async (): Promise<void> => {
         start_time TEXT NOT NULL,
         end_time TEXT NOT NULL,
         subject_code TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
         createdAt TEXT DEFAULT (datetime('now','localtime')),
         FOREIGN KEY (subject_code) REFERENCES subjects (code) ON DELETE CASCADE
       );
@@ -34,7 +36,8 @@ export const initDB = async (): Promise<void> => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         subject_code TEXT NOT NULL,
         date TEXT NOT NULL,
-		status TEXT DEFAULT 'Absent',
+		    status TEXT DEFAULT 'Unmarked',
+        synced INTEGER DEFAULT 0,
         createdAt TEXT DEFAULT (datetime('now','localtime')),
         FOREIGN KEY (subject_code) REFERENCES subjects (code) ON DELETE CASCADE
       );
@@ -44,6 +47,8 @@ export const initDB = async (): Promise<void> => {
     throw error;
   }
 };
+
+
 
 export const getDB = () => {
   if (!db) {
